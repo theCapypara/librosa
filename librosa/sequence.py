@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import numpy as np
 from scipy.spatial.distance import cdist
-from numba import jit
 from .util import pad_center, fill_off_diagonal, is_positive_int, tiny, expand_to
 from .util.exceptions import ParameterError
 from .filters import get_window
@@ -509,7 +508,6 @@ def dtw(
         return return_values[0]
 
 
-@jit(nopython=True, cache=True)  # type: ignore
 def __dtw_calc_accu_cost(
     C: np.ndarray,
     D: np.ndarray,
@@ -582,7 +580,6 @@ def __dtw_calc_accu_cost(
     return D, steps
 
 
-@jit(nopython=True, cache=True)  # type: ignore
 def __dtw_backtracking(
     steps: np.ndarray,
     step_sizes_sigma: np.ndarray,
@@ -891,7 +888,6 @@ def rqa(
     return score
 
 
-@jit(nopython=True, cache=True)  # type: ignore
 def __rqa_dp(
     sim: np.ndarray, gap_onset: float, gap_extend: float, knight: bool
 ) -> Tuple[np.ndarray, np.ndarray]:  # pragma: no cover
@@ -1096,7 +1092,6 @@ def __rqa_backtrack(score, pointers):
     return np.asarray(path, dtype=np.uint)
 
 
-@jit(nopython=True, cache=True)  # type: ignore
 def _viterbi(
     log_prob: np.ndarray, log_trans: np.ndarray, log_p_init: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:  # pragma: no cover

@@ -4,7 +4,6 @@
 
 import re
 import numpy as np
-from numba import jit
 from collections import Counter
 from .intervals import INTERVALS
 from .._cache import cache
@@ -1005,7 +1004,6 @@ def fifths_to_note(*, unison: str, fifths: int, unicode: bool = True) -> str:
     return raw_output + acc_str
 
 
-@jit(nopython=True, nogil=True, cache=True)
 def __o_fold(d):
     """Compute the octave-folded interval.
 
@@ -1018,7 +1016,6 @@ def __o_fold(d):
     return d * (2.0 ** -np.floor(np.log2(d)))
 
 
-@jit(nopython=True, nogil=True, cache=True)
 def __bo_fold(d):
     """Compute the balanced, octave-folded interval.
 
@@ -1031,7 +1028,6 @@ def __bo_fold(d):
     return d * (2.0 ** -np.round(np.log2(d)))
 
 
-@jit(nopython=True, nogil=True, cache=True)
 def __fifth_search(interval, tolerance):
     """Accelerated helper function for finding the number of fifths
     to get within tolerance of a given interval.

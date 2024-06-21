@@ -5,7 +5,6 @@
 import warnings
 import numpy as np
 import scipy
-import numba
 
 
 from .spectrum import _spectrogram
@@ -422,7 +421,6 @@ def _cumulative_mean_normalized_difference(
     return yin_frames
 
 
-@numba.stencil  # type: ignore
 def _pi_stencil(x: np.ndarray) -> np.ndarray:
     """Stencil to compute local parabolic interpolation"""
     a = x[1] + x[-1] - 2 * x[0]
@@ -436,12 +434,7 @@ def _pi_stencil(x: np.ndarray) -> np.ndarray:
     return -b / a  # type: ignore
 
 
-@numba.guvectorize(
-    ["void(float32[:], float32[:])", "void(float64[:], float64[:])"],
-    "(n)->(n)",
-    cache=True,
-    nopython=True,
-)  # type: ignore
+
 def _pi_wrapper(x: np.ndarray, y: np.ndarray) -> None:  # pragma: no cover
     """Vectorized wrapper for the parabolic interpolation stencil"""
     y[:] = _pi_stencil(x)

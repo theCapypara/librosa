@@ -49,7 +49,6 @@ import scipy
 import scipy.signal
 import scipy.ndimage
 
-from numba import jit
 
 from ._cache import cache
 from . import util
@@ -1517,7 +1516,6 @@ def semitone_filterbank(
     return filterbank, fb_sample_rates
 
 
-@jit(nopython=True, cache=True)
 def __window_ss_fill(x, win_sq, n_frames, hop_length):  # pragma: no cover
     """Compute the sum-square envelope of a window."""
     n = len(x)

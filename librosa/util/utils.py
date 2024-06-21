@@ -8,7 +8,6 @@ import scipy.ndimage
 import scipy.sparse
 
 import numpy as np
-import numba
 from numpy.lib.stride_tricks import as_strided
 
 from .._cache import cache
@@ -1036,47 +1035,21 @@ def normalize(
     return Snorm
 
 
-@numba.stencil
 def _localmax_sten(x):  # pragma: no cover
     """Numba stencil for local maxima computation"""
     return (x[0] > x[-1]) & (x[0] >= x[1])
 
 
-@numba.stencil
 def _localmin_sten(x):  # pragma: no cover
     """Numba stencil for local minima computation"""
     return (x[0] < x[-1]) & (x[0] <= x[1])
 
 
-@numba.guvectorize(
-    [
-        "void(int16[:], bool_[:])",
-        "void(int32[:], bool_[:])",
-        "void(int64[:], bool_[:])",
-        "void(float32[:], bool_[:])",
-        "void(float64[:], bool_[:])",
-    ],
-    "(n)->(n)",
-    cache=True,
-    nopython=True,
-)
 def _localmax(x, y):  # pragma: no cover
     """Vectorized wrapper for the localmax stencil"""
     y[:] = _localmax_sten(x)
 
 
-@numba.guvectorize(
-    [
-        "void(int16[:], bool_[:])",
-        "void(int32[:], bool_[:])",
-        "void(int64[:], bool_[:])",
-        "void(float32[:], bool_[:])",
-        "void(float64[:], bool_[:])",
-    ],
-    "(n)->(n)",
-    cache=True,
-    nopython=True,
-)
 def _localmin(x, y):  # pragma: no cover
     """Vectorized wrapper for the localmin stencil"""
     y[:] = _localmin_sten(x)
@@ -1206,15 +1179,6 @@ def localmin(x: np.ndarray, *, axis: int = 0) -> np.ndarray:
 
 
 
-@numba.guvectorize(
-    [
-        "void(float32[:], uint32, uint32, uint32, uint32, float32, uint32, bool_[:])",
-        "void(float64[:], uint32, uint32, uint32, uint32, float32, uint32, bool_[:])",
-        "void(int32[:], uint32, uint32, uint32, uint32, float32, uint32, bool_[:])",
-        "void(int64[:], uint32, uint32, uint32, uint32, float32, uint32, bool_[:])",
-    ],
-    "(n),(),(),(),(),(),()->(n)",
-    nopython=True, cache=True)
 def __peak_pick(x, pre_max, post_max, pre_avg, post_avg, delta, wait, peaks):
     """Vectorized wrapper for the peak-picker"""
     # Special case the first frame
@@ -2010,7 +1974,6 @@ def cyclic_gradient(
     return grad_slice
 
 
-@numba.jit(nopython=True, cache=True)  # type: ignore
 def __shear_dense(X: np.ndarray, *, factor: int = +1, axis: int = -1) -> np.ndarray:
     """Numba-accelerated shear for dense (ndarray) arrays"""
     if axis == 0:
@@ -2346,7 +2309,6 @@ def dtype_c2r(d: DTypeLike, *, default: Optional[type] = np.float32) -> DTypeLik
     return np.dtype(mapping.get(dt, default))
 
 
-@numba.jit(nopython=True, cache=True)
 def __count_unique(x):
     """Count the number of unique values in an array.
 
@@ -2397,7 +2359,6 @@ def count_unique(data: np.ndarray, *, axis: int = -1) -> np.ndarray:
     return np.apply_along_axis(__count_unique, axis, data)
 
 
-@numba.jit(nopython=True, cache=True)
 def __is_unique(x):
     """Determine if the input array has all unique values.
 
@@ -2449,9 +2410,6 @@ def is_unique(data: np.ndarray, *, axis: int = -1) -> np.ndarray:
     return np.apply_along_axis(__is_unique, axis, data)
 
 
-@numba.vectorize(
-    ["float32(complex64)", "float64(complex128)"], nopython=True, cache=True, identity=0
-)  # type: ignore
 def _cabs2(x: _ComplexLike_co) -> _FloatLike_co:  # pragma: no cover
     """Efficiently compute abs2 on complex inputs"""
     return x.real**2 + x.imag**2
@@ -2501,9 +2459,6 @@ def abs2(x: _NumberOrArray, dtype: Optional[DTypeLike] = None) -> _NumberOrArray
         return np.power(x, 2, dtype=dtype)  # type: ignore
 
 
-@numba.vectorize(
-    ["complex64(float32)", "complex128(float64)"], nopython=True, cache=True, identity=1
-)  # type: ignore
 def _phasor_angles(x) -> np.complex_:  # pragma: no cover
     return np.cos(x) + 1j * np.sin(x)  # type: ignore
 

@@ -15,7 +15,6 @@ import scipy.signal
 import soxr
 import lazy_loader as lazy
 
-from numba import jit, stencil, guvectorize
 from .fft import get_fftlib
 from .convert import frames_to_samples, time_to_samples
 from .._cache import cache
@@ -1043,7 +1042,6 @@ def lpc(y: np.ndarray, *, order: int, axis: int = -1) -> np.ndarray:
     )
 
 
-@jit(nopython=True, cache=True)  # type: ignore
 def __lpc(
     y: np.ndarray,
     order: int,
@@ -1138,7 +1136,6 @@ def __lpc(
     return ar_coeffs
 
 
-@stencil  # type: ignore
 def _zc_stencil(x: np.ndarray, threshold: float, zero_pos: bool) -> np.ndarray:
     """Stencil to compute zero crossings"""
     x0 = x[0]
@@ -1155,15 +1152,6 @@ def _zc_stencil(x: np.ndarray, threshold: float, zero_pos: bool) -> np.ndarray:
         return np.sign(x0) != np.sign(x1)  # type: ignore
 
 
-@guvectorize(
-    [
-        "void(float32[:], float32, bool_, bool_[:])",
-        "void(float64[:], float64, bool_, bool_[:])",
-    ],
-    "(n),(),()->(n)",
-    cache=True,
-    nopython=True,
-)  # type: ignore
 def _zc_wrapper(
     x: np.ndarray,
     threshold: float,

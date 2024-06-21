@@ -10,7 +10,6 @@ import scipy.ndimage
 import scipy.signal
 import scipy.interpolate
 
-from numba import jit
 
 from . import convert
 from .fft import get_fftlib
@@ -626,7 +625,6 @@ def istft(
     return y
 
 
-@jit(nopython=True, cache=True)
 def __overlap_add(y, ytmp, hop_length):
     # numba-accelerated overlap add for inverse stft
     # y is the pre-allocated output buffer

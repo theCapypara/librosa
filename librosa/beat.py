@@ -13,7 +13,6 @@ Beat and tempo
 import numpy as np
 import scipy
 import scipy.stats
-import numba
 
 from ._cache import cache
 from . import core
@@ -508,13 +507,6 @@ def __normalize_onsets(onsets):
     return onsets / (norm + util.tiny(onsets))
 
 
-@numba.guvectorize(
-        [
-            "void(float32[:], float32[:], float32[:])",
-            "void(float64[:], float64[:], float64[:])",
-        ],
-        "(t),(n)->(t)",
-        nopython=True, cache=False)
 def __beat_local_score(onset_envelope, frames_per_beat, localscore):
     # This function essentially implements a same-mode convolution,
     # but also allows for a time-varying convolution-like filter to support dynamic tempo.
@@ -549,13 +541,6 @@ def __beat_local_score(onset_envelope, frames_per_beat, localscore):
 
 
 
-@numba.guvectorize(
-        [
-            "void(float32[:], float32[:], float32, int32[:], float32[:])",
-            "void(float64[:], float64[:], float32, int32[:], float64[:])",
-        ],
-        "(t),(n),()->(t),(t)",
-        nopython=True, cache=True)
 def __beat_track_dp(localscore, frames_per_beat, tightness, backlink, cumscore):
     """Core dynamic program for beat tracking"""
     # Threshold for the first beat to exceed
@@ -600,14 +585,6 @@ def __beat_track_dp(localscore, frames_per_beat, tightness, backlink, cumscore):
             first_beat = False
 
 
-@numba.guvectorize(
-    [
-        "void(float32[:], bool_[:], bool_, bool_[:])",
-        "void(float64[:], bool_[:], bool_, bool_[:])"
-        ],
-    "(t),(t),()->(t)",
-    nopython=True, cache=True
-    )
 def __trim_beats(localscore, beats, trim, beats_trimmed):
     """Remove spurious leading and trailing beats from the detection array"""
     # Populate the trimmed beats array with the existing values
@@ -653,14 +630,6 @@ def __last_beat(cumscore):
     return tail
 
 
-@numba.guvectorize(
-        [
-            "void(float32[:], bool_[:], float32, int64[:])",
-            "void(float64[:], bool_[:], float64, int64[:])",
-        ],
-        "(t),(t),()->()",
-        nopython=True, cache=True
-        )
 def __last_beat_selector(cumscore, mask, threshold, out):
     """Vectorized helper to identify the last valid beat position:
 
@@ -677,14 +646,6 @@ def __last_beat_selector(cumscore, mask, threshold, out):
             n -= 1
 
 
-@numba.guvectorize(
-        [
-            "void(int32[:], int32, bool_[:])",
-            "void(int64[:], int64, bool_[:])"
-        ],
-        "(t),()->(t)",
-        nopython=True, cache=True
-        )
 def __dp_backtrack(backlinks, tail, beats):
     """Populate the beat indicator array from a sequence of backlinks"""
     n = tail
